@@ -58,11 +58,14 @@ function configure_ssh {
   echo "${DIM} -> touch /home/storage/.ssh/authorized_keys${NORMAL}"
   touch /home/storage/.ssh/authorized_keys
 
+  echo "${DIM} -> chown -R storage:storage /home/storage${NORMAL}"
+  chown -R storage:storage /home/storage  
+
   echo "${DIM} -> chmod 700 /home/storage/.ssh${NORMAL}"
-  chmod 700 /home/storage/.ssh
+  chmod 0700 /home/storage/.ssh
   
   echo "${DIM} -> chmod 600 /home/storage/.ssh/authorized_keys${NORMAL}"
-  chmod 600 /home/storage/.ssh/authorized_keys
+  chmod 0600 /home/storage/.ssh/authorized_keys
 
   CONFIG_CHECK=`grep "^# SparkleShare$" /etc/ssh/sshd_config`
   if ! [ "$CONFIG_CHECK" = "# SparkleShare" ]; then
