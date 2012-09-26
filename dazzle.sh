@@ -13,11 +13,16 @@ if [ -f "/etc/redhat-release" ]; then
   OS="redhat"
 fi
   
+CONFIG_FILE="/home/storage/.ssconfig"
+
 # Define text styles
 BOLD=`tput bold`
 DIM=`tput dim`
 NORMAL=`tput sgr0`
 
+if [ -f $CONFIG_FILE ]; then
+    . $CONFIG_FILE
+fi
 
 function create_account {
   echo "${BOLD}(1/4) Creating account \"storage\"...${NORMAL}"
@@ -30,6 +35,18 @@ function create_account {
   fi
   
   sleep 0.5
+}
+
+function config {
+  STORAGE_DIR="/home/storage"
+
+  if [ $# -eq 1 ]
+  then
+    STORAGE_DIR=`echo "$1" | sed -e "s/\/*$//" `
+  fi
+
+  echo "export STORAGE_DIR=\"${STORAGE_DIR}\"" >$CONFIG_FILE
+  chmod +x $CONFIG_FILE
 }
 
 function configure_ssh {
@@ -90,15 +107,15 @@ function install_git {
 function create_project {
   echo "${BOLD}Creating project \"$1\"...${NORMAL}"
 
-  if [ -f "/home/storage/$1/HEAD" ]; then
+  if [ -f "${STORAGE_DIR}/$1/HEAD" ]; then
     echo " -> Project \"$1\" already exists."
     echo
   else
-    echo " -> git init --bare /home/storage/$1"
-    git init --quiet --bare /home/storage/$1
+    echo " -> git init --bare ${STORAGE_DIR}/$1"
+    git init --quiet --bare $STORAGE_DIR/$1
     
-    echo " -> chown -R storage:storage /home/storage"
-    chown -R storage:storage /home/storage
+    echo " -> chown -R storage:storage $STORAGE_DIR"
+    chown -R storage:storage $STORAGE_DIR
 
     sleep 0.5
 
@@ -119,7 +136,7 @@ function create_project {
   echo "details into the \"Add Remote Project...\" dialog: "
   echo 
   echo "      Address: ${BOLD}storage@$IP$PORT${NORMAL}"
-  echo "  Remote Path: ${BOLD}/home/storage/$1${NORMAL}"
+  echo "  Remote Path: ${BOLD}${STORAGE_DIR}/$1${NORMAL}"
   echo
   echo "To link up (more) computers, use the \"dazzle link\" command."
   echo
@@ -147,6 +164,7 @@ function link_client {
 case $1 in
   setup)
     create_account
+    config $2
     configure_ssh
     restart_ssh
     install_git
